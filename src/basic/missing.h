@@ -137,6 +137,12 @@ static inline int pivot_root(const char *new_root, const char *put_old) {
 }
 #endif
 
+#if !HAVE_CANONICALIZE_FILE_NAME
+static inline char *canonicalize_file_name(const char *path) {
+        return realpath(path, NULL);
+}
+#endif
+
 #ifndef __NR_memfd_create
 #  if defined __x86_64__
 #    define __NR_memfd_create 319
