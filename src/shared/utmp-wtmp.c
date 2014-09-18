@@ -74,8 +74,10 @@ int utmp_get_runlevel(int *runlevel, int *previous) {
                 return 0;
         }
 
+#ifdef _PATH_UTMPX
         if (utmpxname(_PATH_UTMPX) < 0)
                 return -errno;
+#endif
 
         setutxent();
 
@@ -133,8 +135,10 @@ static int write_entry_utmp(const struct utmpx *store) {
          * each entry type resp. user; i.e. basically a key/value
          * table. */
 
+#ifdef _PATH_UTMPX
         if (utmpxname(_PATH_UTMPX) < 0)
                 return -errno;
+#endif
 
         setutxent();
 
@@ -155,7 +159,9 @@ static int write_entry_wtmp(const struct utmpx *store) {
         simply appended to the end; i.e. basically a log. */
 
         errno = 0;
+#ifdef _PATH_WTMPX
         updwtmpx(_PATH_WTMPX, store);
+#endif
         return -errno;
 }
 
