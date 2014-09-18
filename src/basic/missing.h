@@ -1068,6 +1068,11 @@ static inline int kcmp(pid_t pid1, pid_t pid2, int type, unsigned long idx1, uns
 }
 #endif
 
+#ifndef __COMPAR_FN_T
+#define __COMPAR_FN_T
+typedef int (*__compar_fn_t)(const void *, const void *);
+#endif
+
 #ifndef KCMP_FILE
 #define KCMP_FILE 0
 #endif
