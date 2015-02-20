@@ -13,6 +13,8 @@ Documentation=man:systemd-binfmt.service(8) man:binfmt.d(5)
 Documentation=https://www.kernel.org/doc/Documentation/binfmt_misc.txt
 DefaultDependencies=no
 Conflicts=shutdown.target
+Wants=proc-sys-fs-binfmt_misc.automount
+
 After=proc-sys-fs-binfmt_misc.automount
 Before=sysinit.target shutdown.target
 ConditionPathIsReadWrite=/proc/sys/
@@ -27,3 +29,6 @@ Type=oneshot
 RemainAfterExit=yes
 ExecStart=@rootlibexecdir@/systemd-binfmt
 TimeoutSec=90s
+
+[Install]
+WantedBy=sysinit.target
