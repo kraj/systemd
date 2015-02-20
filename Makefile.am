@@ -4635,10 +4635,6 @@ INSTALL_DIRS += \
 	$(prefix)/lib/binfmt.d \
 	$(sysconfdir)/binfmt.d
 
-SYSINIT_TARGET_WANTS += \
-	systemd-binfmt.service \
-	proc-sys-fs-binfmt_misc.automount
-
 endif
 
 EXTRA_DIST += \
