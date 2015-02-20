@@ -110,6 +110,24 @@ AC_PATH_PROG([UMOUNT_PATH], [umount], [/usr/bin/umount], [$PATH:/usr/sbin:/sbin]
 
 AS_IF([! ln --relative --help > /dev/null 2>&1], [AC_MSG_ERROR([*** ln doesn't support --relative ***])])
 
+# check for few functions not implemented in uClibc
+
+AC_CHECK_FUNCS_ONCE(mkostemp execvpe posix_fallocate)
+
+# check for %ms format support - assume always no if cross compiling
+
+AC_MSG_CHECKING([whether %ms format is supported by *scanf])
+
+AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([
+	 #include <stdio.h>
+	 ],[
+	    char *buf1, *buf2, *buf3, str="1 2.3 abcde" ;
+	    int rc = sscanf(str, "%ms %ms %ms", &buf1, &buf2, &buf3) ;
+	    return (rc==3)?0:1;])],
+	[AC_DEFINE([HAVE_MSFORMAT], [1], [Define if %ms format is supported by *scanf.])],
+	[AC_MSG_RESULT([no])])
+
 M4_DEFINES=
 
 AC_CHECK_TOOL(OBJCOPY, objcopy)
