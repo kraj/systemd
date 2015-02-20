@@ -112,6 +112,8 @@ typedef enum LinkJournal {
         LINK_GUEST
 } LinkJournal;
 
+#include "config.h"
+
 static char *arg_directory = NULL;
 static char *arg_template = NULL;
 static char *arg_user = NULL;
@@ -2595,7 +2597,12 @@ static int inner_child(
                 a[0] = (char*) "/sbin/init";
                 execve(a[0], a, env_use);
         } else if (!strv_isempty(arg_parameters))
+#ifdef HAVE_EXECVPE
                 execvpe(arg_parameters[0], arg_parameters, env_use);
+#else
+                environ = env_use;
+                execvp(arg_parameters[0], arg_parameters);
+#endif /* HAVE_EXECVPE */
         else {
                 chdir(home ?: "/root");
                 execle("/bin/bash", "-bash", NULL, env_use);
