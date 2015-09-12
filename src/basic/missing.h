@@ -582,12 +582,11 @@ static inline int name_to_handle_at(int fd, const char *name, struct file_handle
         return syscall(__NR_name_to_handle_at, fd, name, handle, mnt_id, flags);
 }
 #endif
-
 #ifndef HAVE_SECURE_GETENV
 #  ifdef HAVE___SECURE_GETENV
 #    define secure_getenv __secure_getenv
 #  else
-#    error "neither secure_getenv nor __secure_getenv are available"
+#    define secure_getenv getenv
 #  endif
 #endif
 
