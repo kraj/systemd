@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 #include <sys/statfs.h>
 #include <sys/statvfs.h>
+#include <sys/file.h>
 #include <unistd.h>
 
 #include "sd-bus-protocol.h"

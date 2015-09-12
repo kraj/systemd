@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <unistd.h>
 #include <linux/fs.h>
 #include "alloc-util.h"
