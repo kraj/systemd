@@ -19,6 +19,7 @@
   along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
+#include <wait.h>
 #include "sd-event.h"
 
 #include "fd-util.h"

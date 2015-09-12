@@ -19,8 +19,8 @@
   along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#include <netinet/ether.h>
-#include <linux/netdevice.h>
+#include <netinet/if_ether.h>
+//##include <linux/netdevice.h>
 
 #include "sd-netlink.h"
 
