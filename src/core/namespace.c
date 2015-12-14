@@ -494,7 +494,7 @@ int setup_namespace(
                         home_dir = strjoina("-", home_dir);
                         run_user_dir = prefix_roota(root_directory, "/run/user");
                         run_user_dir = strjoina("-", run_user_dir);
-                        root_dir = prefix_roota(root_directory, "/root");
+                        root_dir = prefix_roota(root_directory, ROOTHOMEDIR);
                         root_dir = strjoina("-", root_dir);
 
                         r = append_mounts(&m, STRV_MAKE(home_dir, run_user_dir, root_dir),

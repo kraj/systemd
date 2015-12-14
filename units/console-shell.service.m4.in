@@ -15,8 +15,8 @@ After=rc-local.service
 Before=getty.target
 
 [Service]
-Environment=HOME=/root
-WorkingDirectory=/root
+Environment=HOME=@roothomedir@
+WorkingDirectory=@roothomedir@
 ExecStart=-@SULOGIN@
 ExecStopPost=-@SYSTEMCTL@ poweroff
 Type=idle

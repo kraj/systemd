@@ -2530,7 +2530,7 @@ static int inner_child(
         if (envp[n_env])
                 n_env ++;
 
-        if ((asprintf((char**)(envp + n_env++), "HOME=%s", home ? home: "/root") < 0) ||
+        if ((asprintf((char**)(envp + n_env++), "HOME=%s", home ? home: ROOTHOMEDIR) < 0) ||
             (asprintf((char**)(envp + n_env++), "USER=%s", arg_user ? arg_user : "root") < 0) ||
             (asprintf((char**)(envp + n_env++), "LOGNAME=%s", arg_user ? arg_user : "root") < 0))
                 return log_oom();
@@ -2604,7 +2604,7 @@ static int inner_child(
                 execvp(arg_parameters[0], arg_parameters);
 #endif /* HAVE_EXECVPE */
         else {
-                chdir(home ?: "/root");
+                chdir(home ?: ROOTHOMEDIR);
                 execle("/bin/bash", "-bash", NULL, env_use);
                 execle("/bin/sh", "-sh", NULL, env_use);
         }
