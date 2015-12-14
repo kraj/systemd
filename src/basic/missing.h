@@ -1125,3 +1125,8 @@ static inline key_serial_t request_key(const char *type, const char *description
 #ifndef KEY_SPEC_USER_KEYRING
 #define KEY_SPEC_USER_KEYRING -4
 #endif
+
+#ifdef __UCLIBC__
+/* 10^x = 10^(log e^x) = (e^x)^log10 = e^(x * log 10) */
+#define exp10(x) (exp((x) * log(10)))
+#endif /* __UCLIBC__ */
