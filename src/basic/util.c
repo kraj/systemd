@@ -769,10 +769,25 @@ uint64_t physical_memory(void) {
         /* We return this as uint64_t in case we are running as 32bit
          * process on a 64bit kernel with huge amounts of memory */
 
+#ifdef __UCLIBC__
+        char line[128];
+        FILE *f = fopen("/proc/meminfo", "r");
+        if (f == NULL)
+                return 0;
+        while (!feof(f) && fgets(line, sizeof(line)-1, f)) {
+                if (sscanf(line, "MemTotal: %li kB", &mem) == 1) {
+                        mem *= 1024;
+                        break;
+                }
+        }
+        fclose(f);
+        return (uint64_t) mem;
+#else
         mem = sysconf(_SC_PHYS_PAGES);
         assert(mem > 0);
 
         return (uint64_t) mem * (uint64_t) page_size();
+#endif
 }
 
 int update_reboot_param_file(const char *param) {
