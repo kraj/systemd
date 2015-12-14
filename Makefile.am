@@ -5146,6 +5146,7 @@ SYSTEM_UNIT_ALIASES += \
 BUSNAMES_TARGET_WANTS += \
 	org.freedesktop.machine1.busname
 
+if HAVE_MYHOSTNAME
 libnss_mymachines_la_SOURCES = \
 	src/nss-mymachines/nss-mymachines.sym \
 	src/nss-mymachines/nss-mymachines.c
@@ -5166,6 +5167,7 @@ libnss_mymachines_la_LIBADD = \
 rootlib_LTLIBRARIES += \
 	libnss_mymachines.la
 
+endif
 endif
 
 polkitpolicy_in_files += \
