@@ -21,7 +21,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <printf.h>
 #include <stddef.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -40,6 +39,7 @@
 #include "stdio-util.h"
 #include "string-util.h"
 #include "util.h"
+#include "parse-printf-format.h"
 
 #define SNDBUF_SIZE (8*1024*1024)
 

@@ -953,6 +953,10 @@ libbasic_la_SOURCES = \
 	src/basic/formats-util.h \
 	src/basic/nss-util.h
 
+if !HAVE_PRINTF_H
+libbasic_la_SOURCES += src/basic/parse-printf-format.c
+endif
+
 nodist_libbasic_la_SOURCES = \
 	src/basic/errno-from-name.h \
 	src/basic/errno-to-name.h \
