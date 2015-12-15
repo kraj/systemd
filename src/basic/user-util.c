@@ -40,6 +40,7 @@
 #include "path-util.h"
 #include "string-util.h"
 #include "user-util.h"
+#include "missing.h"
 
 bool uid_is_valid(uid_t uid) {
 
