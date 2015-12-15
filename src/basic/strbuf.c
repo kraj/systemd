@@ -163,7 +163,7 @@ ssize_t strbuf_add_string(struct strbuf *str, const char *s, size_t len) {
                 search.c = c;
                 child = bsearch(&search, node->children, node->children_count,
                                 sizeof(struct strbuf_child_entry),
-                                (__compar_fn_t) strbuf_children_cmp);
+                                strbuf_children_cmp);
                 if (!child)
                         break;
                 node = child->child;
