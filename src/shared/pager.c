@@ -154,13 +154,20 @@ int pager_open(bool jump_to_end) {
 
 void pager_close(void) {
 
+        int fd;
         if (pager_pid <= 0)
                 return;
 
         /* Inform pager that we are done */
-        stdout = safe_fclose(stdout);
-        stderr = safe_fclose(stderr);
-
+        fflush(stdout);
+        fd = open("/dev/null", O_RDWR);
+	if (fd != -1)
+                dup2(fd, 1);
+        fflush(stderr);
+        fd = open("/dev/null", O_RDWR);
+	if (fd != -1)
+                dup2(fd, 2);
+        close(fd);
         (void) kill(pager_pid, SIGCONT);
         (void) wait_for_terminate(pager_pid, NULL);
         pager_pid = 0;
