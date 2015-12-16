@@ -47,9 +47,10 @@ struct sd_ipv4ll {
 
         sd_ipv4acd *acd;
         be32_t address; /* the address pushed to ACD */
+#ifdef HAVE_RANDOM_R
         struct random_data *random_data;
         char *random_data_state;
-
+#endif
         /* External */
         be32_t claimed_address;
         sd_ipv4ll_cb_t cb;
@@ -78,8 +79,10 @@ sd_ipv4ll *sd_ipv4ll_unref(sd_ipv4ll *ll) {
 
         sd_ipv4acd_unref(ll->acd);
 
+#ifdef HAVE_RANDOM_R
         free(ll->random_data);
         free(ll->random_data_state);
+#endif
         free(ll);
 
         return NULL;
@@ -138,6 +141,7 @@ int sd_ipv4ll_set_mac(sd_ipv4ll *ll, const struct ether_addr *addr) {
 
         assert_return(ll, -EINVAL);
 
+#ifdef HAVE_RANDOM_R
         if (!ll->random_data) {
                 uint64_t seed;
 
@@ -150,7 +154,7 @@ int sd_ipv4ll_set_mac(sd_ipv4ll *ll, const struct ether_addr *addr) {
                 if (r < 0)
                         return r;
         }
-
+#endif
         return sd_ipv4acd_set_mac(ll->acd, addr);
 }
 
@@ -194,9 +198,10 @@ int sd_ipv4ll_get_address(sd_ipv4ll *ll, struct in_addr *address){
 }
 
 int sd_ipv4ll_set_address_seed(sd_ipv4ll *ll, unsigned seed) {
+#ifdef HAVE_RANDOM_R
         _cleanup_free_ struct random_data *random_data = NULL;
         _cleanup_free_ char *random_data_state = NULL;
-        int r;
+        int r = 0;
 
         assert_return(ll, -EINVAL);
 
@@ -219,7 +224,9 @@ int sd_ipv4ll_set_address_seed(sd_ipv4ll *ll, unsigned seed) {
         free(ll->random_data_state);
         ll->random_data_state = random_data_state;
         random_data_state = NULL;
-
+#else
+        srandom(seed);
+#endif
         return 0;
 }
 
@@ -265,24 +272,30 @@ int sd_ipv4ll_set_address(sd_ipv4ll *ll, const struct in_addr *address) {
 static int ipv4ll_pick_address(sd_ipv4ll *ll) {
         struct in_addr in_addr;
         be32_t addr;
-        int r;
-        int32_t random;
 
         assert(ll);
+#ifdef HAVE_RANDOM_R
         assert(ll->random_data);
+#endif
 
         do {
-                r = random_r(ll->random_data, &random);
+#ifdef HAVE_RANDOM_R
+                int32_t randval;
+                int r = random_r(ll->random_data, &randval);
+
                 if (r < 0)
                         return r;
-                addr = htonl((random & 0x0000FFFF) | IPV4LL_NETWORK);
+#else
+                long int randval = random();
+#endif
+                addr = htonl((randval & 0x0000FFFF) | IPV4LL_NETWORK);
         } while (addr == ll->address ||
                 (ntohl(addr) & 0x0000FF00) == 0x0000 ||
                 (ntohl(addr) & 0x0000FF00) == 0xFF00);
 
         in_addr.s_addr = addr;
 
-        r = sd_ipv4ll_set_address(ll, &in_addr);
+        int r = sd_ipv4ll_set_address(ll, &in_addr);
         if (r < 0)
                 return r;
 
@@ -293,7 +306,9 @@ int sd_ipv4ll_start(sd_ipv4ll *ll) {
         int r;
 
         assert_return(ll, -EINVAL);
+#ifdef HAVE_RANDOM_R
         assert_return(ll->random_data, -EINVAL);
+#endif
 
         if (ll->address == 0) {
                 r = ipv4ll_pick_address(ll);

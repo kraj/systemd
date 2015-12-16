@@ -313,6 +313,7 @@ CAP_LIBS="$LIBS"
 LIBS="$save_LIBS"
 AC_SUBST(CAP_LIBS)
 
+AC_CHECK_FUNCS([random_r])
 AC_CHECK_FUNCS([memfd_create])
 AC_CHECK_FUNCS([__secure_getenv secure_getenv canonicalize_file_name])
 AC_CHECK_DECLS([gettid, pivot_root, name_to_handle_at, setns, strndupa, getrandom, renameat2, kcmp, keyctl, key_serial_t, LO_FLAGS_PARTSCAN],
