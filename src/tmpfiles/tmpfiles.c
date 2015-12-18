@@ -73,6 +73,15 @@
 #include "umask-util.h"
 #include "user-util.h"
 #include "util.h"
+/* Don't fail if the standard library
+ * doesn't provide brace expansion */
+#ifndef GLOB_BRACE
+#define GLOB_BRACE 0
+#endif
+#ifndef GLOB_ALTDIRFUNC
+#define GLOB_ALTDIRFUNC 0
+#endif
+
 
 /* This reads all files listed in /etc/tmpfiles.d/?*.conf and creates
  * them in the file system. This is intended to be used to create
@@ -1104,11 +1113,13 @@ static int item_do_children(Item *i, const char *path, action_t action) {
 
 static int glob_item(Item *i, action_t action, bool recursive) {
         _cleanup_globfree_ glob_t g = {
+#ifdef __GLIBC__
                 .gl_closedir = (void (*)(void *)) closedir,
                 .gl_readdir = (struct dirent *(*)(void *)) readdir,
                 .gl_opendir = (void *(*)(const char *)) opendir_nomod,
                 .gl_lstat = lstat,
                 .gl_stat = stat,
+#endif
         };
         int r = 0, k;
         char **fn;
