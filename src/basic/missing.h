@@ -37,7 +37,9 @@
 #include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/syscall.h>
+#ifdef HAVE_UCHAR_H
 #include <uchar.h>
+#endif
 #include <unistd.h>
 
 #ifdef HAVE_AUDIT
