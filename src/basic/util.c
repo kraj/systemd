@@ -742,6 +742,20 @@ uint64_t physical_memory(void) {
          * In order to support containers nicely that have a configured memory limit we'll take the minimum of the
          * physically reported amount of memory and the limit configured for the root cgroup, if there is any. */
 
+#ifdef __UCLIBC__
+        char line[128];
+        FILE *f = fopen("/proc/meminfo", "r");
+        if (f == NULL)
+                return 0;
+        while (!feof(f) && fgets(line, sizeof(line)-1, f)) {
+                if (sscanf(line, "MemTotal: %li kB", &mem) == 1) {
+                        mem *= 1024;
+                        break;
+                }
+        }
+        fclose(f);
+        return (uint64_t) mem;
+#else
         sc = sysconf(_SC_PHYS_PAGES);
         assert(sc > 0);
 
@@ -762,6 +776,7 @@ uint64_t physical_memory(void) {
         lim *= ps;
 
         return MIN(mem, lim);
+#endif
 }
 
 uint64_t physical_memory_scale(uint64_t v, uint64_t max) {
