@@ -1641,6 +1641,11 @@ AC_ARG_WITH([rootlibdir],
         [with_rootlibdir=${libdir}])
 AX_NORMALIZE_PATH([with_rootlibdir])
 
+AC_ARG_WITH([roothomedir],
+        AS_HELP_STRING([--with-roothomedir=DIR], [Home directory for the root user]),
+        [],
+        [with_roothomedir=/root])
+
 AC_ARG_WITH([pamlibdir],
         AS_HELP_STRING([--with-pamlibdir=DIR], [directory for PAM modules]),
         [],
@@ -1733,6 +1738,7 @@ AC_SUBST([pamconfdir], [$with_pamconfdir])
 AC_SUBST([rpmmacrosdir], [$with_rpmmacrosdir])
 AC_SUBST([rootprefix], [$with_rootprefix])
 AC_SUBST([rootlibdir], [$with_rootlibdir])
+AC_SUBST([roothomedir], [$with_roothomedir])
 
 AC_CONFIG_FILES([
         Makefile
@@ -1829,6 +1835,7 @@ AC_MSG_RESULT([
         includedir:                        ${includedir}
         lib dir:                           ${libdir}
         rootlib dir:                       ${with_rootlibdir}
+        root home dir:                     ${with_roothomedir}
         SysV init scripts:                 ${SYSTEM_SYSVINIT_PATH}
         SysV rc?.d directories:            ${SYSTEM_SYSVRCND_PATH}
         build Python:                      ${PYTHON}

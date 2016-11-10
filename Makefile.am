@@ -226,6 +226,7 @@ AM_CPPFLAGS = \
 	-DLIBDIR=\"$(libdir)\" \
 	-DROOTLIBDIR=\"$(rootlibdir)\" \
 	-DROOTLIBEXECDIR=\"$(rootlibexecdir)\" \
+	-DROOTHOMEDIR=\"$(roothomedir)\" \
 	-I $(top_srcdir)/src \
 	-I $(top_builddir)/src/basic \
 	-I $(top_srcdir)/src/basic \
@@ -6356,6 +6357,7 @@ substitutions = \
        '|rootlibdir=$(rootlibdir)|' \
        '|rootlibexecdir=$(rootlibexecdir)|' \
        '|rootbindir=$(rootbindir)|' \
+       '|roothomedir=$(roothomedir)|' \
        '|bindir=$(bindir)|' \
        '|SYSTEMCTL=$(rootbindir)/systemctl|' \
        '|SYSTEMD_NOTIFY=$(rootbindir)/systemd-notify|' \
