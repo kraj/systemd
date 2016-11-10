@@ -214,7 +214,7 @@ AM_CPPFLAGS = \
 	-DROOTLIBDIR=\"$(rootlibdir)\" \
 	-DROOTLIBEXECDIR=\"$(rootlibexecdir)\" \
 	-DROOTHOMEDIR=\"$(roothomedir)\" \
-	-DTEST_DIR=\"$(abs_top_srcdir)/test\" \
+	-DTEST_DIR=\"$(testdir)/test\" \
 	-I $(top_srcdir)/src \
 	-I $(top_builddir)/src/basic \
 	-I $(top_srcdir)/src/basic \

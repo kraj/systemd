@@ -1535,6 +1535,11 @@ AC_ARG_WITH([roothomedir],
         [],
         [with_roothomedir=/root])
 
+AC_ARG_WITH([testdir],
+        AS_HELP_STRING([--with-testdir=DIR], [test file directory]),
+        [],
+        [with_testdir=${abs_top_srcdir}])
+
 AC_ARG_WITH([pamlibdir],
         AS_HELP_STRING([--with-pamlibdir=DIR], [Directory for PAM modules]),
         [],
@@ -1621,6 +1626,7 @@ AC_SUBST([pamconfdir], [$with_pamconfdir])
 AC_SUBST([rootprefix], [$with_rootprefix])
 AC_SUBST([rootlibdir], [$with_rootlibdir])
 AC_SUBST([roothomedir], [$with_roothomedir])
+AC_SUBST([testdir], [$with_testdir])
 
 AC_CONFIG_FILES([
         Makefile
@@ -1712,6 +1718,7 @@ AC_MSG_RESULT([
         lib dir:                           ${libdir}
         rootlib dir:                       ${with_rootlibdir}
         root home dir:                     ${with_roothomedir}
+        test dir:                          ${with_testdir}
         SysV init scripts:                 ${SYSTEM_SYSVINIT_PATH}
         SysV rc?.d directories:            ${SYSTEM_SYSVRCND_PATH}
         Build Python:                      ${PYTHON}
