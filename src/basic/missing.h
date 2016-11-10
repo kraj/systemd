@@ -550,7 +550,7 @@ struct btrfs_ioctl_quota_ctl_args {
 #  ifdef HAVE___SECURE_GETENV
 #    define secure_getenv __secure_getenv
 #  else
-#    error "neither secure_getenv nor __secure_getenv are available"
+#    define secure_getenv getenv
 #  endif
 #endif
 
