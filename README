@@ -61,8 +61,8 @@ REQUIREMENTS:
         Legacy hotplug slows down the system and confuses udev:
           CONFIG_UEVENT_HELPER_PATH=""
 
-        Userspace firmware loading is not supported and should
-        be disabled in the kernel:
+        Userspace firmware loading is deprecated, will go away, and
+        sometimes causes problems:
           CONFIG_FW_LOADER_USER_HELPER=n
 
         Some udev rules and virtualization detection relies on it:

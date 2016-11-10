@@ -740,6 +740,7 @@ Features:
 * initialize the hostname from the fs label of /, if /etc/hostname does not exist?
 
 * udev:
+  - remove src/udev/udev-builtin-firmware.c (CONFIG_FW_LOADER_USER_HELPER=n)
   - move to LGPL
   - kill scsi_id
   - add trigger --subsystem-match=usb/usb_device device

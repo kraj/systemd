@@ -1522,6 +1522,23 @@ AM_CONDITIONAL(HAVE_MYHOSTNAME, [test "$have_myhostname" = "yes"])
 AC_ARG_ENABLE(hwdb, [AS_HELP_STRING([--disable-hwdb], [disable hardware database support])],
        enable_hwdb=$enableval, enable_hwdb=yes)
 AM_CONDITIONAL(ENABLE_HWDB, [test x$enable_hwdb = xyes])
+AC_ARG_WITH(firmware-path,
+       AS_HELP_STRING([--with-firmware-path=DIR[[[:DIR[...]]]]],
+          [Firmware search path (default="")]),
+       [], [with_firmware_path=""])
+OLD_IFS=$IFS
+IFS=:
+for i in $with_firmware_path; do
+       if test "x${FIRMWARE_PATH}" = "x"; then
+              FIRMWARE_PATH="\\\"${i}/\\\""
+       else
+              FIRMWARE_PATH="${FIRMWARE_PATH}, \\\"${i}/\\\""
+       fi
+done
+IFS=$OLD_IFS
+AC_SUBST(FIRMWARE_PATH)
+AS_IF([test "x${FIRMWARE_PATH}" != "x"], [ AC_DEFINE(HAVE_FIRMWARE, 1, [Define if FIRMWARE is available]) ])
+AM_CONDITIONAL(ENABLE_FIRMWARE, [test "x${FIRMWARE_PATH}" != "x"])
 
 # ------------------------------------------------------------------------------
 have_manpages=no
@@ -1839,6 +1856,7 @@ AC_MSG_RESULT([
         SysV init scripts:                 ${SYSTEM_SYSVINIT_PATH}
         SysV rc?.d directories:            ${SYSTEM_SYSVRCND_PATH}
         build Python:                      ${PYTHON}
+        firmware path:                     ${FIRMWARE_PATH}
         PAM modules dir:                   ${with_pamlibdir}
         PAM configuration dir:             ${with_pamconfdir}
         RPM macros dir:                    ${with_rpmmacrosdir}
