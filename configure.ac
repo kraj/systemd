@@ -329,6 +329,7 @@ AC_CHECK_DECLS([
         pivot_root,
         name_to_handle_at,
         setns,
+        strndupa,
         renameat2,
         kcmp,
         keyctl,

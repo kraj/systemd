@@ -30,6 +30,7 @@
 #include "parse-util.h"
 #include "process-util.h"
 #include "string-util.h"
+#include "missing.h"
 
 int parse_boolean(const char *v) {
         assert(v);
