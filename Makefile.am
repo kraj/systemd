@@ -5290,6 +5290,7 @@ EXTRA_DIST += \
 	src/timesync/timesyncd.conf.in
 
 # ------------------------------------------------------------------------------
+if ENABLE_NSS_SYSTEMD
 test_nss_SOURCES = \
 	src/test/test-nss.c
 
@@ -5302,7 +5303,6 @@ manual_tests += \
 	test-nss
 
 # ------------------------------------------------------------------------------
-if ENABLE_NSS_SYSTEMD
 libnss_systemd_la_SOURCES = \
 	src/nss-systemd/nss-systemd.sym \
 	src/nss-systemd/nss-systemd.c
