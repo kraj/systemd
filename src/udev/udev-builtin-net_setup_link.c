@@ -16,7 +16,7 @@
   You should have received a copy of the GNU Lesser General Public License
   along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
-
+#include <netinet/if_ether.h>
 #include "alloc-util.h"
 #include "link-config.h"
 #include "log.h"

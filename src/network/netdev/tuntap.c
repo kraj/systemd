@@ -18,6 +18,7 @@
 ***/
 
 #include <fcntl.h>
+#include <netinet/if_ether.h>
 #include <linux/if_tun.h>
 #include <net/if.h>
 #include <netinet/if_ether.h>

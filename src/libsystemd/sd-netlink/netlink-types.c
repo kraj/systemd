@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <sys/socket.h>
+#include <netinet/if_ether.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <linux/can/netlink.h>
