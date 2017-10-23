@@ -18,7 +18,6 @@
 ***/
 
 #include <stdio.h>
-
 #include "time-util.h"
 
 /* Print information about various types. Useful when diagnosing
@@ -48,8 +47,10 @@ int main(void) {
         info(unsigned);
         info(long unsigned);
         info(long long unsigned);
+#ifdef __GLIBC__
         info(__syscall_ulong_t);
         info(__syscall_slong_t);
+#endif
 
         info(float);
         info(double);
@@ -59,7 +60,9 @@ int main(void) {
         info(ssize_t);
         info(time_t);
         info(usec_t);
+#ifdef __GLIBC__
         info(__time_t);
+#endif
 
         info(enum Enum);
         info(enum BigEnum);
