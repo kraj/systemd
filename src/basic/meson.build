@@ -140,6 +140,8 @@ basic_sources = files('''
         nss-util.h
         ordered-set.c
         ordered-set.h
+        parse-printf-format.c
+        parse-printf-format.h
         parse-util.c
         parse-util.h
         path-util.c
