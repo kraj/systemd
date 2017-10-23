@@ -333,6 +333,7 @@ AC_CHECK_DECLS([
         renameat2,
         kcmp,
         keyctl,
+        canonicalize_file_name,
         LO_FLAGS_PARTSCAN,
         copy_file_range,
         explicit_bzero],
@@ -343,6 +344,7 @@ AC_CHECK_DECLS([
 #include <fcntl.h>
 #include <sched.h>
 #include <string.h>
+#include <stdlib.h>
 #include <linux/loop.h>
 ]])
 
