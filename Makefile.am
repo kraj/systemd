@@ -997,6 +997,10 @@ libbasic_la_SOURCES = \
 	src/basic/journal-importer.h \
 	src/basic/journal-importer.c
 
+if !HAVE_PRINTF_H
+libbasic_la_SOURCES += src/basic/parse-printf-format.c
+endif
+
 nodist_libbasic_la_SOURCES = \
 	src/basic/errno-from-name.h \
 	src/basic/errno-to-name.h \

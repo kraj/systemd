@@ -308,8 +308,10 @@ AC_CHECK_HEADERS([uchar.h], [], [])
 AC_CHECK_HEADERS([sys/capability.h], [], [AC_MSG_ERROR([*** POSIX caps headers not found])])
 AC_CHECK_HEADERS([linux/btrfs.h], [], [])
 AC_CHECK_HEADERS([linux/memfd.h], [], [])
+AC_CHECK_HEADERS([printf.h], [], [])
 AC_CHECK_HEADERS([linux/vm_sockets.h], [], [], [#include <sys/socket.h>])
 
+AM_CONDITIONAL(HAVE_PRINTF_H, [test "x$ac_cv_header_printf_h" = xyes])
 # unconditionally pull-in librt with old glibc versions
 AC_SEARCH_LIBS([clock_gettime], [rt], [], [])
 

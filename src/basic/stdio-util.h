@@ -19,12 +19,12 @@
   along with systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#include <printf.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/types.h>
 
 #include "macro.h"
+#include "parse-printf-format.h"
 
 #define xsprintf(buf, fmt, ...) \
         assert_message_se((size_t) snprintf(buf, ELEMENTSOF(buf), fmt, __VA_ARGS__) < ELEMENTSOF(buf), "xsprintf: " #buf "[] must be big enough")
