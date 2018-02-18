@@ -40,7 +40,7 @@ static const struct passwd root_passwd = {
         .pw_uid = 0,
         .pw_gid = 0,
         .pw_gecos = (char*) "Super User",
-        .pw_dir = (char*) "/root",
+        .pw_dir = (char*) ROOTHOMEDIR,
         .pw_shell = (char*) "/bin/sh",
 };
 

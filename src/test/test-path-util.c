@@ -232,11 +232,11 @@ static void test_path_join(void) {
                 assert_se(streq(z, expected));   \
         }
 
-        test_join("/root", "/a/b", "/c", "/root/a/b/c");
-        test_join("/root", "a/b", "c", "/root/a/b/c");
-        test_join("/root", "/a/b", "c", "/root/a/b/c");
-        test_join("/root", "/", "c", "/root/c");
-        test_join("/root", "/", NULL, "/root/");
+        test_join(ROOTHOMEDIR, "/a/b", "/c", "/root/a/b/c");
+        test_join(ROOTHOMEDIR, "a/b", "c", "/root/a/b/c");
+        test_join(ROOTHOMEDIR, "/a/b", "c", "/root/a/b/c");
+        test_join(ROOTHOMEDIR, "/", "c", "/root/c");
+        test_join(ROOTHOMEDIR, "/", NULL, "/root/");
 
         test_join(NULL, "/a/b", "/c", "/a/b/c");
         test_join(NULL, "a/b", "c", "a/b/c");

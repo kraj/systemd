@@ -94,6 +94,11 @@ if rootlibdir == ''
         rootlibdir = join_paths(rootprefixdir, libdir.split('/')[-1])
 endif
 
+roothomedir = get_option('roothomedir')
+if roothomedir == ''
+        roothomedir = join_paths(rootprefixdir, 'root')
+endif
+
 # Dirs of external packages
 pkgconfigdatadir = join_paths(datadir, 'pkgconfig')
 pkgconfiglibdir = join_paths(libdir, 'pkgconfig')
@@ -211,6 +216,7 @@ conf.set_quoted('UDEVLIBEXECDIR',                             udevlibexecdir)
 conf.set_quoted('POLKIT_AGENT_BINARY_PATH',                   join_paths(bindir, 'pkttyagent'))
 conf.set_quoted('LIBDIR',                                     libdir)
 conf.set_quoted('ROOTLIBDIR',                                 rootlibdir)
+conf.set_quoted('ROOTHOMEDIR',                                roothomedir)
 conf.set_quoted('ROOTLIBEXECDIR',                             rootlibexecdir)
 conf.set_quoted('BOOTLIBDIR',                                 bootlibdir)
 conf.set_quoted('SYSTEMD_PULL_PATH',                          join_paths(rootlibexecdir, 'systemd-pull'))
@@ -229,6 +235,7 @@ substs.set('prefix',                                          prefixdir)
 substs.set('exec_prefix',                                     prefixdir)
 substs.set('libdir',                                          libdir)
 substs.set('rootlibdir',                                      rootlibdir)
+substs.set('roothomedir',                                     roothomedir)
 substs.set('includedir',                                      includedir)
 substs.set('pkgsysconfdir',                                   pkgsysconfdir)
 substs.set('bindir',                                          bindir)
@@ -2714,6 +2721,7 @@ status = [
         'include directory:                 @0@'.format(includedir),
         'lib directory:                     @0@'.format(libdir),
         'rootlib directory:                 @0@'.format(rootlibdir),
+        'roothome directory:                @0@'.format(roothomedir),
         'SysV init scripts:                 @0@'.format(sysvinit_path),
         'SysV rc?.d directories:            @0@'.format(sysvrcnd_path),
         'PAM modules directory:             @0@'.format(pamlibdir),

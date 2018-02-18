@@ -2415,7 +2415,7 @@ static int inner_child(
         if (envp[n_env])
                 n_env++;
 
-        if ((asprintf((char**)(envp + n_env++), "HOME=%s", home ? home: "/root") < 0) ||
+        if ((asprintf((char**)(envp + n_env++), "HOME=%s", home ? home: ROOTHOMEDIR) < 0) ||
             (asprintf((char**)(envp + n_env++), "USER=%s", arg_user ? arg_user : "root") < 0) ||
             (asprintf((char**)(envp + n_env++), "LOGNAME=%s", arg_user ? arg_user : "root") < 0))
                 return log_oom();
@@ -2497,7 +2497,7 @@ static int inner_child(
         } else {
                 if (!arg_chdir)
                         /* If we cannot change the directory, we'll end up in /, that is expected. */
-                        (void) chdir(home ?: "/root");
+                        (void) chdir(home ?: ROOTHOMEDIR);
 
                 execle("/bin/bash", "-bash", NULL, env_use);
                 execle("/bin/sh", "-sh", NULL, env_use);

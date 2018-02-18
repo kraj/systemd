@@ -16,8 +16,8 @@ After=sysinit.target plymouth-start.service
 Before=shutdown.target
 
 [Service]
-Environment=HOME=/root
-WorkingDirectory=-/root
+Environment=HOME=@roothomedir@
+WorkingDirectory=-@roothomedir@
 ExecStartPre=-/bin/plymouth --wait quit
 ExecStart=-@rootlibexecdir@/systemd-sulogin-shell rescue
 Type=idle

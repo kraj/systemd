@@ -122,14 +122,14 @@ static const MountEntry protect_kernel_modules_table[] = {
 static const MountEntry protect_home_read_only_table[] = {
         { "/home",               READONLY,     true  },
         { "/run/user",           READONLY,     true  },
-        { "/root",               READONLY,     true  },
+        { ROOTHOMEDIR,               READONLY,     true  },
 };
 
 /* ProtectHome=yes table */
 static const MountEntry protect_home_yes_table[] = {
         { "/home",               INACCESSIBLE, true  },
         { "/run/user",           INACCESSIBLE, true  },
-        { "/root",               INACCESSIBLE, true  },
+        { ROOTHOMEDIR,               INACCESSIBLE, true  },
 };
 
 /* ProtectSystem=yes table */
@@ -162,7 +162,7 @@ static const MountEntry protect_system_strict_table[] = {
         { "/dev",                READWRITE,    false },      /* PrivateDevices= */
         { "/home",               READWRITE,    true  },      /* ProtectHome= */
         { "/run/user",           READWRITE,    true  },      /* ProtectHome= */
-        { "/root",               READWRITE,    true  },      /* ProtectHome= */
+        { ROOTHOMEDIR,               READWRITE,    true  },      /* ProtectHome= */
 };
 
 static const char *mount_entry_path(const MountEntry *p) {
