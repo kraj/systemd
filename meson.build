@@ -622,6 +622,7 @@ foreach header : ['crypt.h',
                   'linux/memfd.h',
                   'linux/vm_sockets.h',
                   'sys/auxv.h',
+                  'uchar.h',
                   'valgrind/memcheck.h',
                   'valgrind/valgrind.h',
                  ]
