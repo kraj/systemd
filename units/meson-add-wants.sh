@@ -25,4 +25,4 @@ case "$target" in
                 ;;
 esac
 
-ln -vfs --relative "$unitpath" "$dir"
+lnr -vfs "$unitpath" "$dir"

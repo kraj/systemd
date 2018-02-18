@@ -579,10 +579,6 @@ endforeach
 
 conf.set_quoted('TELINIT', get_option('telinit-path'))
 
-if run_command('ln', '--relative', '--help').returncode() != 0
-        error('ln does not support --relative')
-endif
-
 ############################################################
 
 gperf = find_program('gperf')
