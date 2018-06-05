@@ -1,5 +1,10 @@
 #!/bin/env bash
 
+# The official unmodified version of the script can be found at
+# https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh
+
+set -e
+
 # Declare build command
 COVERITY_SCAN_BUILD_COMMAND="ninja -C cov-build"
 
@@ -135,8 +140,9 @@ _upload()
 	  --form version=$SHA \
 	  --form description="Travis CI build" \
 	  $UPLOAD_URL)
+	printf "\033[33;1mThe response is\033[0m\n%s\n" "$response"
 	status_code=$(echo "$response" | sed -n '$p')
-	if [ "$status_code" != "201" ]; then
+	if [ "$status_code" != "200" ]; then
 	  TEXT=$(echo "$response" | sed '$d')
 	  echo -e "\033[33;1mCoverity Scan upload failed: $TEXT.\033[0m"
 	  exit 1
