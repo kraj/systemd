@@ -78,6 +78,7 @@ bool cpu_accounting_is_cheap(void);
 #define CGROUP_WEIGHT_MAX UINT64_C(10000)
 #define CGROUP_WEIGHT_DEFAULT UINT64_C(100)
 
+#define CGROUP_LIMIT_INVALID ((uint64_t) -2)
 #define CGROUP_LIMIT_MIN UINT64_C(0)
 #define CGROUP_LIMIT_MAX ((uint64_t) -1)
 

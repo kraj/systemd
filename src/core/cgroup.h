@@ -95,6 +95,8 @@ struct CGroupContext {
         LIST_HEAD(CGroupIODeviceLimit, io_device_limits);
         LIST_HEAD(CGroupIODeviceLatency, io_device_latencies);
 
+        uint64_t default_memory_low;
+
         uint64_t memory_min;
         uint64_t memory_low;
         uint64_t memory_high;

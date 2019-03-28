@@ -3104,6 +3104,17 @@ int config_parse_memory_limit(
                 }
         }
 
+        /* Defaults come first, so that they can be overridden later. DefaultMemoryXXX= with no rvalue
+         * resets. */
+        if (streq(lvalue, "DefaultMemoryLow")) {
+                if (isempty(rvalue)) {
+                        c->default_memory_low = CGROUP_LIMIT_MIN;
+                } else {
+                        c->default_memory_low = bytes;
+                        c->memory_low = bytes;
+                }
+        }
+
         if (streq(lvalue, "MemoryMin"))
                 c->memory_min = bytes;
         else if (streq(lvalue, "MemoryLow"))
