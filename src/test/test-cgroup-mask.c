@@ -70,6 +70,83 @@ static int test_cgroup_mask(void) {
         assert_se(manager_load_startable_unit_or_warn(m, "parent-deep.slice", NULL, &parent_deep) >= 0);
         assert_se(manager_load_startable_unit_or_warn(m, "nomem.slice", NULL, &nomem_parent) >= 0);
         assert_se(manager_load_startable_unit_or_warn(m, "nomemleaf.service", NULL, &nomem_leaf) >= 0);
+
+        /* dml.slice has DefaultMemoryLow=50. Beyond that, individual subhierarchies look like this:
+         *
+         * 1. dml_passthrough.slice sets MemoryLow=100. This should not affect its children, as only
+         *    DefaultMemoryLow is propagated, not MemoryLow. As such, all leaf services should end up with
+         *    memory.low as 50, inherited from dml.slice, *except* for dml_passthrough_set_ml.service, which
+         *    should have the value of 25, as it has MemoryLow explicitly set.
+         *
+         *                                                  ┌───────────┐
+         *                                                  │ dml.slice │
+         *                                                  └─────┬─────┘
+         *                                                   MemoryLow=50
+         *                                            ┌───────────┴───────────┐
+         *                                            │ dml_passthrough.slice │
+         *                                            └───────────┬───────────┘
+         *                    ┌───────────────────────────────────┼───────────────────────────────────┐
+         *             no new settings                   DefaultMemoryLow=15                     MemoryLow=25
+         *    ┌───────────────┴───────────────┐  ┌────────────────┴────────────────┐  ┌───────────────┴────────────────┐
+         *    │ dml_passthrough_empty.service │  │ dml_passthrough_set_dml.service │  │ dml_passthrough_set_ml.service │
+         *    └───────────────────────────────┘  └─────────────────────────────────┘  └────────────────────────────────┘
+         *
+         * 2. dml_override.slice sets DefaultMemoryLow=10. As such, dml_override_empty.service should also
+         *    end up with a memory.low of 10. dml_override.slice should still have a memory.low of 50.
+         *
+         *            ┌───────────┐
+         *            │ dml.slice │
+         *            └─────┬─────┘
+         *         DefaultMemoryLow=10
+         *        ┌─────────┴──────────┐
+         *        │ dml_override.slice │
+         *        └─────────┬──────────┘
+         *           no new settings
+         *    ┌─────────────┴──────────────┐
+         *    │ dml_override_empty.service │
+         *    └────────────────────────────┘
+         *
+         * 3. dml_discard.slice sets DefaultMemoryLow= with no rvalue. As such,
+         *    dml_discard_empty.service should end up with a value of 0.
+         *    dml_discard_explicit_ml.service sets MemoryLow=70, and as such should have that override the
+         *    reset DefaultMemoryLow value. dml_discard.slice should still have an eventual memory.low of 50.
+         *
+         *                           ┌───────────┐
+         *                           │ dml.slice │
+         *                           └─────┬─────┘
+         *                          no new settings
+         *                       ┌─────────┴─────────┐
+         *                       │ dml_discard.slice │
+         *                       └─────────┬─────────┘
+         *                  ┌──────────────┴───────────────┐
+         *           no new settings                  MemoryLow=15
+         *    ┌─────────────┴─────────────┐  ┌─────────────┴──────────────┐
+         *    │ dml_discard_empty.service │  │ dml_discard_set_ml.service │
+         *    └───────────────────────────┘  └────────────────────────────┘
+         */
+        assert_se(manager_load_startable_unit_or_warn(m, "dml.slice", NULL, &dml) >= 0);
+
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_passthrough.slice", NULL, &dml_passthrough) >= 0);
+        assert_se(UNIT_DEREF(dml_passthrough->slice) == dml);
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_passthrough_empty.service", NULL, &dml_passthrough_empty) >= 0);
+        assert_se(UNIT_DEREF(dml_passthrough_empty->slice) == dml_passthrough);
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_passthrough_set_dml.service", NULL, &dml_passthrough_set_dml) >= 0);
+        assert_se(UNIT_DEREF(dml_passthrough_set_dml->slice) == dml_passthrough);
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_passthrough_set_ml.service", NULL, &dml_passthrough_set_ml) >= 0);
+        assert_se(UNIT_DEREF(dml_passthrough_set_ml->slice) == dml_passthrough);
+
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_override.slice", NULL, &dml_override) >= 0);
+        assert_se(UNIT_DEREF(dml_override->slice) == dml);
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_override_empty.service", NULL, &dml_override_empty) >= 0);
+        assert_se(UNIT_DEREF(dml_override_empty->slice) == dml_override);
+
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_discard.slice", NULL, &dml_discard) >= 0);
+        assert_se(UNIT_DEREF(dml_discard->slice) == dml);
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_discard_empty.service", NULL, &dml_discard_empty) >= 0);
+        assert_se(UNIT_DEREF(dml_discard_empty->slice) == dml);
+        assert_se(manager_load_startable_unit_or_warn(m, "dml_discard_set_ml.service", NULL, &dml_discard_set_ml) >= 0);
+        assert_se(UNIT_DEREF(dml_discard_set_ml->slice) == dml_discard);
+
         assert_se(UNIT_DEREF(son->slice) == parent);
         assert_se(UNIT_DEREF(daughter->slice) == parent);
         assert_se(UNIT_DEREF(parent_deep->slice) == parent);
