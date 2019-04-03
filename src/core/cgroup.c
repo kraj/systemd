@@ -390,9 +390,8 @@ static uint64_t unit_get_ancestor_memory_low(Unit *u) {
         CGroupContext *c;
 
         /* 1. Is MemoryLow set in this unit? If so, use that.
-         * 2. Is DefaultMemoryLow set in this unit? If so, use that.
-         * 3. Is DefaultMemoryLow set in any ancestor? If so, use that.
-         * 4. Otherwise, return CGROUP_LIMIT_MIN. */
+         * 2. Is DefaultMemoryLow set in any ancestor? If so, use that.
+         * 3. Otherwise, return CGROUP_LIMIT_MIN. */
 
         assert(u);
 
@@ -400,9 +399,6 @@ static uint64_t unit_get_ancestor_memory_low(Unit *u) {
 
         if (c->memory_low != CGROUP_LIMIT_INVALID)
             return c->memory_low;
-
-        if (c->default_memory_low != CGROUP_LIMIT_INVALID)
-            return c->default_memory_low;
 
         while (UNIT_ISSET(u->slice)) {
             u = UNIT_DEREF(u->slice);
