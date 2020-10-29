@@ -65,6 +65,7 @@
 #include "rm-rf.h"
 #include "selinux-util.h"
 #include "serialize.h"
+#include "set.h"
 #include "signal-util.h"
 #include "socket-util.h"
 #include "special.h"
@@ -3736,10 +3737,67 @@ int manager_deserialize(Manager *m, FILE *f, FDSet *fds) {
         return manager_deserialize_units(m, f, fds);
 }
 
+static int manager_pin_all_cgroup_bpf_programs(Manager *m, Set **pinned_progs) {
+        int r;
+        Unit *u;
+
+        assert(m);
+
+        HASHMAP_FOREACH(u, m->units) {
+                size_t i;
+                BPFProgram *p;
+                BPFProgram *builtin_progs[] = {u->bpf_device_control_installed,
+                                           u->ip_bpf_ingress,
+                                           u->ip_bpf_ingress_installed,
+                                           u->ip_bpf_egress,
+                                           u->ip_bpf_egress_installed};
+                Set *custom_progs[] = {u->ip_bpf_custom_ingress,
+                                       u->ip_bpf_custom_egress,
+                                       u->ip_bpf_custom_ingress_installed,
+                                       u->ip_bpf_custom_egress_installed};
+
+                for (i = 0; i < ELEMENTSOF(builtin_progs); i++) {
+                        p = builtin_progs[i];
+                        if (!p)
+                                continue;
+
+                        r = set_ensure_put(pinned_progs, NULL, p);
+                        if (r < 0)
+                                return log_error_errno(r, "Cannot store BPF program for reload: %m");
+
+                        (void) bpf_program_ref(p);
+                }
+
+                for (i = 0; i < ELEMENTSOF(custom_progs); i++) {
+                        SET_FOREACH(p, custom_progs[i]) {
+                                r = set_ensure_put(pinned_progs, NULL, p);
+                                if (r < 0)
+                                        return log_error_errno(r, "Cannot store BPF program for reload: %m");
+
+                                (void) bpf_program_ref(p);
+                        }
+                }
+        }
+
+        log_debug("Pinned %d BPF programs for daemon-reload", set_size(*pinned_progs));
+
+        return 0;
+}
+
+static void unpin_all_cgroup_bpf_programs(Set *pinned_progs) {
+        BPFProgram *p;
+
+        log_debug("Unpinning %d BPF programs after daemon-reload", set_size(pinned_progs));
+
+        SET_FOREACH(p, pinned_progs)
+                (void) bpf_program_unref(p);
+}
+
 int manager_reload(Manager *m) {
         _cleanup_(manager_reloading_stopp) Manager *reloading = NULL;
         _cleanup_fdset_free_ FDSet *fds = NULL;
         _cleanup_fclose_ FILE *f = NULL;
+        _cleanup_set_free_ Set *pinned_progs = NULL;
         int r;
 
         assert(m);
@@ -3770,6 +3828,13 @@ int manager_reload(Manager *m) {
         /* Start by flushing out all jobs and units, all generated units, all runtime environments, all dynamic users
          * and everything else that is worth flushing out. We'll get it all back from the serialization — if we need
          * it.*/
+
+        /* We need existing BPF programs to survive reload, otherwise there will be a period where no BPF
+         * program is active during task execution within a cgroup. This would be bad since this may have
+         * security or reliability implications: devices we should filter won't be filtered, network activity
+         * we should filter won't be filtered, etc. We pin all the existing devices by bumping their
+         * refcount, and then storing them to later have it decremented. */
+        (void) manager_pin_all_cgroup_bpf_programs(m, &pinned_progs);
 
         manager_clear_jobs_and_units(m);
         lookup_paths_flush_generator(&m->lookup_paths);
@@ -3810,6 +3875,9 @@ int manager_reload(Manager *m) {
 
         /* Third, fire things up! */
         manager_coldplug(m);
+
+        /* The new BPF programs should be back in action now, so we can stop pinning the old ones. */
+        unpin_all_cgroup_bpf_programs(pinned_progs);
 
         /* Clean up runtime objects no longer referenced */
         manager_vacuum(m);
