@@ -3222,9 +3222,7 @@ static int serialize_limbo_bpf_program(FILE *f, FDSet *fds, BPFProgram *p) {
          * to, since we're just going to expire it after coldplug. */
 
         assert(f);
-        assert(key);
         assert(p);
-
         assert(p->n_ref == 1);
         assert(p->kernel_fd > 0);
         assert(p->attached_path);
@@ -3242,36 +3240,35 @@ static void deserialize_limbo_bpf_program(Manager *m, FDSet *fds, const char *va
         int fd, r, prog_type, attached_type;
 
         assert(m);
-        assert(name);
         assert(value);
 
         r = extract_first_word(&value, &raw_fd, NULL, 0);
         if (r <= 0 || safe_atoi(raw_fd, &fd) < 0 || fd < 0 || !fdset_contains(fds, fd)) {
-                log_unit_debug(u, "Failed to parse bpf-limbo FD: %s", value);
+                log_error("Failed to parse bpf-limbo FD: %s", value);
                 return;
         }
 
         r = extract_first_word(&value, &raw_pt, NULL, 0);
         if (r <= 0 || safe_atoi(raw_pt, &prog_type) < 0) {
-                log_unit_debug(u, "Failed to parse bpf-limbo program type: %s", value);
+                log_error("Failed to parse bpf-limbo program type: %s", value);
                 return;
         }
 
         r = extract_first_word(&value, &raw_at, NULL, 0);
         if (r <= 0 || safe_atoi(raw_at, &attached_type) < 0) {
-                log_unit_debug(u, "Failed to parse bpf-limbo attached type: %s", value);
+                log_error("Failed to parse bpf-limbo attached type: %s", value);
                 return;
         }
 
         r = extract_first_word(&value, &raw_cgpath, NULL, EXTRACT_CUNESCAPE | EXTRACT_UNQUOTE);
         if (r <= 0) {
-                log_unit_debug_errno(u, r, "Failed to parse attached path for BPF limbo FD %s: %m", value);
+                log_error_errno(r, "Failed to parse attached path for BPF limbo FD %s: %m", value);
                 return;
         }
 
         r = bpf_program_new(prog_type, &p);
         if (r < 0) {
-                log_unit_error_errno(u, r, "Failed to create BPF limbo program", name);
+                log_error_errno(r, "Failed to create BPF limbo program");
                 return;
         }
 
@@ -3283,7 +3280,7 @@ static void deserialize_limbo_bpf_program(Manager *m, FDSet *fds, const char *va
 
         r = set_ensure_put(&m->bpf_limbo_progs, NULL, p);
         if (r < 0) {
-                log_unit_debug(u, "Failed to register BPF limbo program for FD %s", value);
+                log_error_errno(r, "Failed to register BPF limbo program for FD %s", value);
                 (void) bpf_program_unref(p);
         }
 }
