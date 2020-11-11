@@ -3302,6 +3302,8 @@ int manager_serialize(
 
         _cleanup_(manager_reloading_stopp) _unused_ Manager *reloading = manager_reloading_start(m);
 
+        log_error("YEET: manager_serialize");
+
         (void) serialize_item_format(f, "current-job-id", "%" PRIu32, m->current_job_id);
         (void) serialize_item_format(f, "n-installed-jobs", "%u", m->n_installed_jobs);
         (void) serialize_item_format(f, "n-failed-jobs", "%u", m->n_failed_jobs);
@@ -3575,6 +3577,8 @@ int manager_deserialize(Manager *m, FILE *f, FDSet *fds) {
         assert(m);
         assert(f);
 
+        log_error("YEET: manager_deserialize");
+
         if (DEBUG_LOGGING) {
                 if (fdset_isempty(fds))
                         log_debug("No file descriptors passed");
@@ -3823,6 +3827,8 @@ static int manager_pin_all_cgroup_bpf_programs(Manager *m) {
 
         assert(m);
 
+        log_error("YEET: manager_pin_all");
+
         HASHMAP_FOREACH(u, m->units) {
                 size_t i;
                 BPFProgram *p;
@@ -3873,6 +3879,8 @@ static void manager_skeletonize_all_cgroup_bpf_programs(Manager *m) {
 
         assert(m);
 
+        log_error("YEET: manager_skeletonize");
+
         SET_FOREACH(p, m->bpf_limbo_progs)
                 bpf_program_skeletonize(p);
 }
@@ -3880,6 +3888,7 @@ static void manager_skeletonize_all_cgroup_bpf_programs(Manager *m) {
 static void unpin_all_cgroup_bpf_programs(Manager *m) {
         BPFProgram *p;
 
+        log_error("YEET: unpin_all_cgroup_bpf_programs");
         log_debug("Unpinning %d BPF programs after daemon-reload", set_size(m->bpf_limbo_progs));
 
         SET_FOREACH(p, m->bpf_limbo_progs)

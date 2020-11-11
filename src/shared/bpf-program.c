@@ -32,6 +32,8 @@ int bpf_program_new(uint32_t prog_type, BPFProgram **ret) {
 static BPFProgram *bpf_program_free(BPFProgram *p) {
         assert(p);
 
+        log_error("YEET: Freeing BPF program at %s", p->attached_path);
+
         /* Unfortunately, the kernel currently doesn't implicitly detach BPF programs from their cgroups when the last
          * fd to the BPF program is closed. This has nasty side-effects since this means that abnormally terminated
          * programs that attached one of their BPF programs to a cgroup will leave this programs pinned for good with
@@ -191,6 +193,8 @@ int bpf_program_cgroup_detach(BPFProgram *p) {
 
         assert(p);
 
+        log_error("YEET: Detaching BPF program at %s", p->attached_path);
+
         if (!p->attached_path)
                 return -EUNATCH;
 
@@ -216,6 +220,8 @@ int bpf_program_cgroup_detach(BPFProgram *p) {
         }
 
         p->attached_path = mfree(p->attached_path);
+
+        log_error("YEET: Freeing for %s succeeded", p->attached_path);
 
         return 0;
 }
