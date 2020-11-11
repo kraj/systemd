@@ -1667,6 +1667,7 @@ int manager_startup(Manager *m, FILE *serialization, FDSet *fds) {
                 dual_timestamp_get(m->timestamps + manager_timestamp_initrd_mangle(MANAGER_TIMESTAMP_UNITS_LOAD_FINISH));
 
                 /* Second, deserialize if there is something to deserialize */
+                log_emergency("YEET: serialization %d", !!serialization);
                 if (serialization) {
                         r = manager_deserialize(m, serialization, fds);
                         if (r < 0)
