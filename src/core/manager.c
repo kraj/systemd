@@ -3170,6 +3170,7 @@ static bool manager_timestamp_shall_serialize(ManagerTimestamp t) {
                        MANAGER_TIMESTAMP_SECURITY_START, MANAGER_TIMESTAMP_SECURITY_FINISH,
                        MANAGER_TIMESTAMP_GENERATORS_START, MANAGER_TIMESTAMP_GENERATORS_FINISH,
                        MANAGER_TIMESTAMP_UNITS_LOAD_START, MANAGER_TIMESTAMP_UNITS_LOAD_FINISH);
+
 }
 
 #define DESTROY_IPC_FLAG (UINT32_C(1) << 31)
@@ -3221,6 +3222,7 @@ int manager_serialize(
         const char *t;
         Unit *u;
         int r;
+        BPFProgram *p;
 
         assert(m);
         assert(f);
@@ -3264,6 +3266,9 @@ int manager_serialize(
 
                 (void) serialize_dual_timestamp(f, joined, m->timestamps + q);
         }
+
+        SET_FOREACH(p, m->bpf_limbo_progs)
+                (void) serialize_limbo_bpf_program(f, fds, p);
 
         if (!switching_root)
                 (void) serialize_strv(f, "env", m->client_environment);
@@ -3561,6 +3566,9 @@ int manager_deserialize(Manager *m, FILE *f, FDSet *fds) {
                         else
                                 m->n_failed_jobs += n;
 
+                } else if ((val = startswith(l, "bpf-limbo="))) {
+                        deserialize_limbo_bpf_program(m, fds, val);
+
                 } else if ((val = startswith(l, "taint-usr="))) {
                         int b;
 
@@ -3737,7 +3745,7 @@ int manager_deserialize(Manager *m, FILE *f, FDSet *fds) {
         return manager_deserialize_units(m, f, fds);
 }
 
-static int manager_pin_all_cgroup_bpf_programs(Manager *m, Set **pinned_progs) {
+static int manager_pin_all_cgroup_bpf_programs(Manager *m) {
         int r;
         Unit *u;
 
@@ -3761,7 +3769,7 @@ static int manager_pin_all_cgroup_bpf_programs(Manager *m, Set **pinned_progs) {
                         if (!p)
                                 continue;
 
-                        r = set_ensure_put(pinned_progs, NULL, p);
+                        r = set_ensure_put(&m->bpf_limbo_progs, NULL, p);
                         if (r < 0)
                                 return log_error_errno(r, "Cannot store BPF program for reload: %m");
 
@@ -3770,7 +3778,7 @@ static int manager_pin_all_cgroup_bpf_programs(Manager *m, Set **pinned_progs) {
 
                 for (i = 0; i < ELEMENTSOF(custom_progs); i++) {
                         SET_FOREACH(p, custom_progs[i]) {
-                                r = set_ensure_put(pinned_progs, NULL, p);
+                                r = set_ensure_put(&m->bpf_limbo_progs, NULL, p);
                                 if (r < 0)
                                         return log_error_errno(r, "Cannot store BPF program for reload: %m");
 
@@ -3779,25 +3787,39 @@ static int manager_pin_all_cgroup_bpf_programs(Manager *m, Set **pinned_progs) {
                 }
         }
 
-        log_debug("Pinned %d BPF programs for daemon-reload", set_size(*pinned_progs));
+        log_debug("Pinned %d BPF programs for daemon-reload", set_size(m->bpf_limbo_progs));
 
         return 0;
 }
 
-static void unpin_all_cgroup_bpf_programs(Set *pinned_progs) {
+static void manager_skeletonize_all_cgroup_bpf_programs(Manager *m) {
         BPFProgram *p;
 
-        log_debug("Unpinning %d BPF programs after daemon-reload", set_size(pinned_progs));
+        /* unit_free won't have freed the BPF programs, because we're pinning them earlier during
+         * manager_reload. We don't want to detach the BPF program or release the FD yet, but we _can_ free
+         * some parts of the data structure which aren't needed now we entered the point of no return. */
 
-        SET_FOREACH(p, pinned_progs)
+        assert(m);
+
+        SET_FOREACH(p, m->bpf_limbo_progs)
+                bpf_program_skeletonize(p);
+}
+
+static void unpin_all_cgroup_bpf_programs(Manager *m) {
+        BPFProgram *p;
+
+        log_debug("Unpinning %d BPF programs after daemon-reload", set_size(m->bpf_limbo_progs));
+
+        SET_FOREACH(p, m->bpf_limbo_progs)
                 (void) bpf_program_unref(p);
+
+        set_free(m->bpf_limbo_progs);
 }
 
 int manager_reload(Manager *m) {
         _cleanup_(manager_reloading_stopp) Manager *reloading = NULL;
         _cleanup_fdset_free_ FDSet *fds = NULL;
         _cleanup_fclose_ FILE *f = NULL;
-        _cleanup_set_free_ Set *pinned_progs = NULL;
         int r;
 
         assert(m);
@@ -3812,6 +3834,13 @@ int manager_reload(Manager *m) {
 
         /* We are officially in reload mode from here on. */
         reloading = manager_reloading_start(m);
+
+        /* We need existing BPF programs to survive reload, otherwise there will be a period where no BPF
+         * program is active during task execution within a cgroup. This would be bad since this may have
+         * security or reliability implications: devices we should filter won't be filtered, network activity
+         * we should filter won't be filtered, etc. We pin all the existing devices by bumping their
+         * refcount, and then storing them to later have it decremented. */
+        (void) manager_pin_all_cgroup_bpf_programs(m);
 
         r = manager_serialize(m, f, fds, false);
         if (r < 0)
@@ -3829,20 +3858,15 @@ int manager_reload(Manager *m) {
          * and everything else that is worth flushing out. We'll get it all back from the serialization — if we need
          * it.*/
 
-        /* We need existing BPF programs to survive reload, otherwise there will be a period where no BPF
-         * program is active during task execution within a cgroup. This would be bad since this may have
-         * security or reliability implications: devices we should filter won't be filtered, network activity
-         * we should filter won't be filtered, etc. We pin all the existing devices by bumping their
-         * refcount, and then storing them to later have it decremented. */
-        (void) manager_pin_all_cgroup_bpf_programs(m, &pinned_progs);
-
         manager_clear_jobs_and_units(m);
+        manager_skeletonize_all_cgroup_bpf_programs(m);
         lookup_paths_flush_generator(&m->lookup_paths);
         lookup_paths_free(&m->lookup_paths);
         exec_runtime_vacuum(m);
         dynamic_user_vacuum(m, false);
         m->uid_refs = hashmap_free(m->uid_refs);
         m->gid_refs = hashmap_free(m->gid_refs);
+        m->bpf_limbo_progs = set_free(m->bpf_limbo_progs);
 
         r = lookup_paths_init(&m->lookup_paths, m->unit_file_scope, 0, NULL);
         if (r < 0)
@@ -3855,6 +3879,7 @@ int manager_reload(Manager *m) {
 
         /* We flushed out generated files, for which we don't watch mtime, so we should flush the old map. */
         manager_free_unit_name_maps(m);
+
 
         /* First, enumerate what we can from kernel and suchlike */
         manager_enumerate_perpetual(m);
@@ -3877,7 +3902,7 @@ int manager_reload(Manager *m) {
         manager_coldplug(m);
 
         /* The new BPF programs should be back in action now, so we can stop pinning the old ones. */
-        unpin_all_cgroup_bpf_programs(pinned_progs);
+        unpin_all_cgroup_bpf_programs(m);
 
         /* Clean up runtime objects no longer referenced */
         manager_vacuum(m);

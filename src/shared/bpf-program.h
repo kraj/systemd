@@ -26,6 +26,7 @@ struct BPFProgram {
 };
 
 int bpf_program_new(uint32_t prog_type, BPFProgram **ret);
+void bpf_program_skeletonize(BPFProgram *p);
 BPFProgram *bpf_program_unref(BPFProgram *p);
 BPFProgram *bpf_program_ref(BPFProgram *p);
 

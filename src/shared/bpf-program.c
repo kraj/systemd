@@ -49,6 +49,16 @@ static BPFProgram *bpf_program_free(BPFProgram *p) {
         return mfree(p);
 }
 
+void bpf_program_skeletonize(BPFProgram *p) {
+        assert(p);
+
+        /* Called as part of pre-serialization. From this point on, we are frozen for serialization and entry
+         * into BPF limbo, so we should proactively free our instructions and attached path. However, we
+         * shouldn't detach the program or close the kernel FD -- we need those on the other side. */
+        free(p->instructions);
+        free(p->attached_path);
+}
+
 DEFINE_TRIVIAL_REF_UNREF_FUNC(BPFProgram, bpf_program, bpf_program_free);
 
 int bpf_program_add_instructions(BPFProgram *p, const struct bpf_insn *instructions, size_t count) {
