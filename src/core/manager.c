@@ -3223,7 +3223,8 @@ static int serialize_limbo_bpf_program(FILE *f, FDSet *fds, BPFProgram *p) {
 
         assert(f);
         assert(p);
-        assert(p->n_ref == 1);
+
+        /* The program should be set up by now, otherwise it shouldn't be present at all */
         assert(p->kernel_fd > 0);
         assert(p->attached_path);
 
