@@ -115,6 +115,70 @@ int serialize_dual_timestamp(FILE *f, const char *name, const dual_timestamp *t)
         return serialize_item_format(f, name, USEC_FMT " " USEC_FMT, t->realtime, t->monotonic);
 }
 
+int serialize_limbo_bpf_program(FILE *f, FDSet *fds, BPFProgram *p) {
+        int copy;
+
+        /* We don't actually need the instructions or other data, since this is only used on the other side
+         * for BPF limbo, which just requires the program type (inferred, not stored), cgroup path (stored),
+         * and kernel-facing BPF file descriptor (stored). We don't even need to know what unit it's attached
+         * to, since we're just going to expire it after coldplug. */
+
+        assert(f);
+        assert(key);
+        assert(p);
+
+        assert(p->n_ref == 1);
+        assert(p->kernel_fd > 0);
+        assert(p->attached_path);
+
+        copy = fdset_put_dup(fds, p->kernel_fd);
+        if (copy < 0)
+                return log_error_errno(copy, "Failed to add file descriptor to serialization set: %m");
+
+        return serialize_item_format(f, "bpf-limbo", "%i \"%s\"", copy, p->attached_path);
+}
+
+void deserialize_limbo_bpf_program(Manager *m, FDSet *fds, const char *value, uint32_t prog_type, int attached_type) {
+        _cleanup_free_ char *raw_fd = NULL, *raw_cgpath = NULL;
+        BPFProgram *p;
+        int fd, r;
+
+        assert(m);
+        assert(name);
+        assert(value);
+
+        r = extract_first_word(&value, &raw_fd, NULL, 0);
+        if (r <= 0 || safe_atoi(raw_fd, &fd) < 0 || fd < 0 || !fdset_contains(fds, fd)) {
+                log_unit_debug(u, "Failed to parse bpf-limbo value: %s", value);
+                return;
+        }
+
+        r = extract_first_word(&value, &raw_cgpath, NULL, EXTRACT_CUNESCAPE | EXTRACT_UNQUOTE);
+        if (r <= 0) {
+                log_unit_debug_errno(u, r, "Failed to parse attached path for BPF limbo FD %s: %m", value);
+                return;
+        }
+
+        r = bpf_program_new(prog_type, &p);
+        if (r < 0) {
+                log_unit_error_errno(u, r, "Failed to create BPF limbo program", name);
+                return;
+        }
+
+        /* Just enough to free it when the time is right, this does not have enough information be used as a
+         * real BPFProgram. */
+        p->attached_type = attached_type;
+        p->kernel_fd = fdset_remove(fds, fd);
+        p->attached_path = strdup(raw_cgpath);
+
+        r = set_ensure_put(&m->bpf_limbo, NULL, p);
+        if (r < 0) {
+                log_unit_debug(u, "Failed to register BPF limbo program for FD %s", value);
+                (void) bpf_program_unref(p);
+        }
+}
+
+
 int serialize_strv(FILE *f, const char *key, char **l) {
         int ret = 0, r;
         char **i;
